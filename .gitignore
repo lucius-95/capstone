@@ -1,151 +1,126 @@
-# Created by https://www.toptal.com/developers/gitignore/api/c++,clion
-# Edit at https://www.toptal.com/developers/gitignore?templates=c++,clion
+# Created by https://www.toptal.com/developers/gitignore/api/c,eclipse
+# Edit at https://www.toptal.com/developers/gitignore?templates=c,eclipse
 
-### C++ ###
+### C ###
 # Prerequisites
 *.d
 
-# Compiled Object files
-*.slo
-*.lo
+# Object files
 *.o
+*.ko
 *.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
 
 # Precompiled Headers
 *.gch
 *.pch
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
+# Libraries
 *.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
 
 # Executables
 *.exe
 *.out
 *.app
+*.i*86
+*.x86_64
+*.hex
 
-### CLion ###
-# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
-# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
 
-# User-specific stuff
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/usage.statistics.xml
-.idea/**/dictionaries
-.idea/**/shelf
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
 
-# AWS User-specific
-.idea/**/aws.xml
+### Eclipse ###
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+[Rr]elease/
+[Dd]ebug/
 
-# Generated files
-.idea/**/contentModel.xml
+# External tool builders
+.externalToolBuilders/
 
-# Sensitive or high-churn files
-.idea/**/dataSources/
-.idea/**/dataSources.ids
-.idea/**/dataSources.local.xml
-.idea/**/sqlDataSources.xml
-.idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
-.idea/**/dbnavigator.xml
+# Locally stored "Eclipse launch configurations"
+*.launch
 
-# Gradle
-.idea/**/gradle.xml
-.idea/**/libraries
+# PyDev specific (Python IDE for Eclipse)
+*.pydevproject
 
-# Gradle and Maven with auto-import
-# When using Gradle or Maven with auto-import, you should exclude module files,
-# since they will be recreated, and may cause churn.  Uncomment if using
-# auto-import.
-# .idea/artifacts
-# .idea/compiler.xml
-# .idea/jarRepositories.xml
-# .idea/modules.xml
-# .idea/*.iml
-# .idea/modules
-# *.iml
-# *.ipr
+# CDT-specific (C/C++ Development Tooling)
+.cproject
 
-# CMake
-cmake-build-*/
+# CDT- autotools
+.autotools
 
-# Mongo Explorer plugin
-.idea/**/mongoSettings.xml
+# Java annotation processor (APT)
+.factorypath
 
-# File-based project format
-*.iws
+# PDT-specific (PHP Development Tools)
+.buildpath
 
-# IntelliJ
-out/
+# sbteclipse plugin
+.target
 
-# mpeltonen/sbt-idea plugin
-.idea_modules/
+# Tern plugin
+.tern-project
 
-# JIRA plugin
-atlassian-ide-plugin.xml
+# TeXlipse plugin
+.texlipse
 
-# Cursive Clojure plugin
-.idea/replstate.xml
+# STS (Spring Tool Suite)
+.springBeans
 
-# SonarLint plugin
-.idea/sonarlint/
+# Code Recommenders
+.recommenders/
 
-# Crashlytics plugin (for Android Studio and IntelliJ)
-com_crashlytics_export_strings.xml
-crashlytics.properties
-crashlytics-build.properties
-fabric.properties
+# Annotation Processing
+.apt_generated/
+.apt_generated_test/
 
-# Editor-based Rest Client
-.idea/httpRequests
+# Scala IDE specific (Scala & Java development for Eclipse)
+.cache-main
+.scala_dependencies
+.worksheet
 
-# Android studio 3.1+ serialized cache file
-.idea/caches/build_file_checksums.ser
+# Uncomment this line if you wish to ignore the project description file.
+# Typically, this file would be tracked if it contains build/dependency configurations:
+#.project
 
-### CLion Patch ###
-# Comment Reason: https://github.com/joeblau/gitignore.io/issues/186#issuecomment-215987721
+### Eclipse Patch ###
+# Spring Boot Tooling
+.sts4-cache/
 
-# *.iml
-# modules.xml
-# .idea/misc.xml
-# *.ipr
-
-# Sonarlint plugin
-# https://plugins.jetbrains.com/plugin/7973-sonarlint
-.idea/**/sonarlint/
-
-# SonarQube Plugin
-# https://plugins.jetbrains.com/plugin/7238-sonarqube-community-plugin
-.idea/**/sonarIssues.xml
-
-# Markdown Navigator plugin
-# https://plugins.jetbrains.com/plugin/7896-markdown-navigator-enhanced
-.idea/**/markdown-navigator.xml
-.idea/**/markdown-navigator-enh.xml
-.idea/**/markdown-navigator/
-
-# Cache file creation bug
-# See https://youtrack.jetbrains.com/issue/JBR-2257
-.idea/$CACHE_FILE$
-
-# CodeStream plugin
-# https://plugins.jetbrains.com/plugin/12206-codestream
-.idea/codestream.xml
-
-# Azure Toolkit for IntelliJ plugin
-# https://plugins.jetbrains.com/plugin/8053-azure-toolkit-for-intellij
-.idea/**/azureSettings.xml
-
-# End of https://www.toptal.com/developers/gitignore/api/c++,clion
+# End of https://www.toptal.com/developers/gitignore/api/c,eclipse
