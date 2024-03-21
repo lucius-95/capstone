@@ -115,9 +115,6 @@ void Error_Handler(void);
 #define TEAM1_DIGIT4_EN_GPIO_Port GPIOB
 #define TEAM2_DIGIT1_EN_Pin GPIO_PIN_9
 #define TEAM2_DIGIT1_EN_GPIO_Port GPIOB
-
-#define SEGMENTS 7
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

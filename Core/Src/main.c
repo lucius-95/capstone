@@ -21,7 +21,6 @@
 #include "adc.h"
 #include "dma.h"
 #include "tim.h"
-#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -43,8 +42,11 @@ enum StartButtonRole
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define SEGMENTS 7
+
 void updateLEDs();
 double getWeight(int);
+int* digitToHexDisplay(int);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -74,17 +76,6 @@ int team2TargetScore = 0;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-#ifdef __GNUC__
-#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
-#else
-#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#endif
-
-PUTCHAR_PROTOTYPE
-{
-  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
-  return ch;
-}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -194,7 +185,6 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -219,12 +209,6 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;
-  PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK1;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
@@ -388,7 +372,7 @@ void displayTeam1Score() {
 	int dig3 = (team1Score / 10) % 10;
 	int dig4 = team1Score % 10;
 
-	int dig1Segments[SEGMENTS] = digitToHexDisplay(dig1);
+	int* dig1Segments = digitToHexDisplay(dig1);
   // TODO - Fill the shift register
 	for (int i=6;i>=0;i--) {
     HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) dig1Segments[i]);
@@ -401,7 +385,7 @@ void displayTeam1Score() {
   HAL_GPIO_WritePin(TEAM1_DIGIT1_EN_GPIO_Port,TEAM1_DIGIT1_EN_Pin, GPIO_PIN_RESET); //Disable Dig 1
   free(dig1Segments);
 
-	int dig2Segments[SEGMENTS] = digitToHexDisplay(dig2);
+	int* dig2Segments = digitToHexDisplay(dig2);
     // TODO - Fill the shift register
 	for (int i=6;i>=0;i--) {
     HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) dig2Segments[i]);
@@ -413,7 +397,7 @@ void displayTeam1Score() {
   HAL_GPIO_WritePin(TEAM1_DIGIT2_EN_GPIO_Port,TEAM1_DIGIT2_EN_Pin, GPIO_PIN_RESET); //Disable Dig2
   free(dig2Segments);
 
-	int dig3Segments[SEGMENTS] = digitToHexDisplay(dig3);
+	int* dig3Segments = digitToHexDisplay(dig3);
     // TODO - Fill the shift register
 	for (int i=6;i>=0;i--) {
     HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) dig3Segments[i]);
@@ -425,7 +409,7 @@ void displayTeam1Score() {
   HAL_GPIO_WritePin(TEAM1_DIGIT3_EN_GPIO_Port,TEAM1_DIGIT3_EN_Pin, GPIO_PIN_RESET); //Disable Dig3
   free(dig3Segments);
 
-	int dig4Segments[SEGMENTS] = digitToHexDisplay(dig4);
+	int* dig4Segments = digitToHexDisplay(dig4);
     // TODO - Fill the shift register
 	for (int i=6;i>=0;i--) {
     HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) dig4Segments[i]);
