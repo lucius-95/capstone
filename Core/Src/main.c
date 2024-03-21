@@ -27,7 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include <math.h>
 #include <stdbool.h>
-#include <stdio.h>
+#include <stdlib.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -114,8 +114,8 @@ int main(void)
   MX_DMA_Init();
   MX_ADC_Init();
   MX_TIM1_Init();
-  MX_USART1_UART_Init();
   MX_TIM3_Init();
+  MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
   HAL_ADCEx_Calibration_Start(&hadc);
   HAL_ADC_Start_DMA(&hadc, &adcValue, 1);
@@ -257,6 +257,11 @@ void restartGame()
 
   // TODO Reset everything (the score board, target score, ...)
   updateLEDs();
+
+  // Stop the timers
+  HAL_TIM_Base_Stop_IT(&htim1);
+  HAL_TIM_Base_Stop_IT(&htim3);
+  HAL_TIM_Base_Stop_IT(&htim14);
 }
 
 double getWeight(int fsrNum)
@@ -348,7 +353,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_TIM_Base_Stop_IT(&htim1);
   }
   // Case 2: Buttons are held
-  else
+  else if (htim == &htim3)
   {
     // Reset
     if (HAL_GPIO_ReadPin(START_RESET_BUTTON_GPIO_Port, START_RESET_BUTTON_Pin) == GPIO_PIN_RESET)
@@ -363,6 +368,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     }
 
     HAL_TIM_Base_Stop_IT(&htim3);
+  }
+  // Case 3: Flash the score board
+  else if (htim == &htim14)
+  {
+    // TODO Flash the score
   }
 }
 
