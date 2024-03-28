@@ -62,7 +62,7 @@ void MX_GPIO_Init(void)
                           |TEAM1_DIGIT3_EN_Pin|TEAM2_DIGIT2_EN_Pin|TEAM1_DIGIT4_EN_Pin|TEAM2_DIGIT1_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, TEAM1_SWD_Pin|TEAM1_LATCH_OUTPUT_Pin|TEAM1_DIGIT1_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8|TEAM1_SWD_Pin|TEAM1_LATCH_OUTPUT_Pin|TEAM1_DIGIT1_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PCPin PCPin PCPin */
   GPIO_InitStruct.Pin = AIN_S2_Pin|AIN_S3_Pin|AIN_S1_Pin;
@@ -89,17 +89,17 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PAPin PAPin PAPin */
-  GPIO_InitStruct.Pin = ADD_SCORE_BUTTON_Pin|REMOVE_SCORE_BUTTON_Pin|SELECT_TEAM_BUTTON_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PAPin PAPin PAPin */
-  GPIO_InitStruct.Pin = TEAM1_SWD_Pin|TEAM1_LATCH_OUTPUT_Pin|TEAM1_DIGIT1_EN_Pin;
+  /*Configure GPIO pins : PA8 PAPin PAPin PAPin */
+  GPIO_InitStruct.Pin = GPIO_PIN_8|TEAM1_SWD_Pin|TEAM1_LATCH_OUTPUT_Pin|TEAM1_DIGIT1_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PAPin PAPin */
+  GPIO_InitStruct.Pin = REMOVE_SCORE_BUTTON_Pin|SELECT_TEAM_BUTTON_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
@@ -107,10 +107,6 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(START_RESET_BUTTON_GPIO_Port, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
 }
 

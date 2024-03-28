@@ -47,6 +47,7 @@ enum StartButtonRole
 void updateLEDs();
 double getWeight(int);
 int* digitToHexDisplay(int);
+void displayTeam1Score();
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -115,7 +116,6 @@ int main(void)
   MX_ADC_Init();
   MX_TIM1_Init();
   MX_TIM3_Init();
-  MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
   HAL_ADCEx_Calibration_Start(&hadc);
   HAL_ADC_Start_DMA(&hadc, &adcValue, 1);
@@ -169,8 +169,12 @@ int main(void)
       }
     }
 
+
+    HAL_ADC_Start(&hadc);
+    HAL_Delay(10);
+    team1Score = getWeight(1);
     updateLEDs();
-    // TODO Update the HEX display
+    displayTeam1Score();
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
   }
@@ -216,25 +220,27 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 // Interrupt handler
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  // Most of the times, buttons are just pressed
-  if (isButtonFree)
-  {
-    HAL_TIM_Base_Start_IT(&htim1);
-    isButtonFree = false;
-  }
-
-  // These can trigger the "buttons held" logics
-  if (GPIO_Pin == START_RESET_BUTTON_Pin ||
-      (HAL_GPIO_ReadPin(REMOVE_SCORE_BUTTON_GPIO_Port, REMOVE_SCORE_BUTTON_Pin) == GPIO_PIN_RESET &&
-       HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_RESET))
-  {
-    // Restart the timer
-    HAL_TIM_Base_Stop_IT(&htim3);
-    HAL_TIM_Base_Start_IT(&htim3);
-  }
-}
+//void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+//{
+//  // Most of the times, buttons are just pressed
+//  if (isButtonFree)
+//  {
+//    HAL_TIM_Base_Start_IT(&htim1);
+//    isButtonFree = false;
+//  }
+//
+//  // These can trigger the "buttons held" logics
+//  if (GPIO_Pin == START_RESET_BUTTON_Pin ||
+//      //(
+//       HAL_GPIO_ReadPin(REMOVE_SCORE_BUTTON_GPIO_Port, REMOVE_SCORE_BUTTON_Pin) == GPIO_PIN_RESET
+//    //&& HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_RESET)
+//    )
+//  {
+//    // Restart the timer
+//    HAL_TIM_Base_Stop_IT(&htim3);
+//    HAL_TIM_Base_Start_IT(&htim3);
+//  }
+//}
 
 void updateLEDs()
 {
@@ -261,11 +267,11 @@ void restartGame()
   // Stop the timers
   HAL_TIM_Base_Stop_IT(&htim1);
   HAL_TIM_Base_Stop_IT(&htim3);
-  HAL_TIM_Base_Stop_IT(&htim14);
 }
 
 double getWeight(int fsrNum)
 {
+  fsrNum--;
   // Set the MUX to get value from the interested FSR
   HAL_GPIO_WritePin(AIN_S0_GPIO_Port, AIN_S0_Pin, (GPIO_PinState) ((fsrNum >> 0) & 1));
   HAL_GPIO_WritePin(AIN_S1_GPIO_Port, AIN_S1_Pin, (GPIO_PinState) ((fsrNum >> 1) & 1));
@@ -273,6 +279,7 @@ double getWeight(int fsrNum)
   HAL_GPIO_WritePin(AIN_S3_GPIO_Port, AIN_S3_Pin, (GPIO_PinState) ((fsrNum >> 3) & 1));
 
   // TODO Wait for the ADC to balance itself
+  adcValue = HAL_ADC_GetValue(&hadc);
   return exp((adcValue - 1384.04) / 307.17) + 19.98;
 }
 
@@ -320,7 +327,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     else if (isSettingUp)
     {
       // Increase target score
-      if (HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_SET)
+      //if (HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_SET)
+      if (HAL_GPIO_ReadPin(REMOVE_SCORE_BUTTON_GPIO_Port, REMOVE_SCORE_BUTTON_Pin) == GPIO_PIN_SET)
       {
         if (currentTeam == 1) { team1TargetScore += 100; }
         else { team2TargetScore += 100; }
@@ -336,7 +344,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     else
     {
       // Increase score
-      if (HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_SET)
+      //if (HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_SET)
+      if (HAL_GPIO_ReadPin(REMOVE_SCORE_BUTTON_GPIO_Port, REMOVE_SCORE_BUTTON_Pin) == GPIO_PIN_SET)
       {
         if (currentTeam == 1) { team1Score += 25; }
         else { team2Score += 25; }
@@ -361,22 +370,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       restartGame();
     }
     // Calibrate
-    else if (isSettingUp && HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_RESET &&
-    	HAL_GPIO_ReadPin(REMOVE_SCORE_BUTTON_GPIO_Port, REMOVE_SCORE_BUTTON_Pin) == GPIO_PIN_RESET)
-    {
-    	weightPerBag = getWeight(0);
-    }
+//    else if (isSettingUp && HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_RESET &&
+//    	HAL_GPIO_ReadPin(REMOVE_SCORE_BUTTON_GPIO_Port, REMOVE_SCORE_BUTTON_Pin) == GPIO_PIN_RESET)
+//    {
+//    	weightPerBag = getWeight(0);
+//    }
 
     HAL_TIM_Base_Stop_IT(&htim3);
   }
-  // Case 3: Flash the score board
-  else if (htim == &htim14)
-  {
-    // TODO Flash the score
-  }
 }
 
-void displayTeam1Score() {
+void displayTeam1Score()
+{
 	int dig1 = team1Score / 1000;
 	int dig2 = (team1Score / 100) % 10;
 	int dig3 = (team1Score / 10) % 10;
@@ -391,7 +396,8 @@ void displayTeam1Score() {
   }
   HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(TEAM1_DIGIT1_EN_GPIO_Port,TEAM1_DIGIT1_EN_Pin, GPIO_PIN_SET); //Enable Dig1 
+  HAL_GPIO_WritePin(TEAM1_DIGIT1_EN_GPIO_Port,TEAM1_DIGIT1_EN_Pin, GPIO_PIN_SET); //Enable Dig1
+  HAL_Delay(2);
   HAL_GPIO_WritePin(TEAM1_DIGIT1_EN_GPIO_Port,TEAM1_DIGIT1_EN_Pin, GPIO_PIN_RESET); //Disable Dig 1
   free(dig1Segments);
 
@@ -403,7 +409,9 @@ void displayTeam1Score() {
     HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
   }
   HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(TEAM1_DIGIT2_EN_GPIO_Port,TEAM1_DIGIT2_EN_Pin, GPIO_PIN_SET); //Enable Dig2
+  HAL_Delay(2);
   HAL_GPIO_WritePin(TEAM1_DIGIT2_EN_GPIO_Port,TEAM1_DIGIT2_EN_Pin, GPIO_PIN_RESET); //Disable Dig2
   free(dig2Segments);
 
@@ -415,7 +423,9 @@ void displayTeam1Score() {
     HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
   }
   HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(TEAM1_DIGIT3_EN_GPIO_Port,TEAM1_DIGIT3_EN_Pin, GPIO_PIN_SET); //Enable Dig3
+  HAL_Delay(2);
   HAL_GPIO_WritePin(TEAM1_DIGIT3_EN_GPIO_Port,TEAM1_DIGIT3_EN_Pin, GPIO_PIN_RESET); //Disable Dig3
   free(dig3Segments);
 
@@ -427,7 +437,9 @@ void displayTeam1Score() {
     HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
   }
   HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(TEAM1_DIGIT4_EN_GPIO_Port,TEAM1_DIGIT4_EN_Pin, GPIO_PIN_SET); //Enable Dig4
+  HAL_Delay(2);
   HAL_GPIO_WritePin(TEAM1_DIGIT4_EN_GPIO_Port,TEAM1_DIGIT4_EN_Pin, GPIO_PIN_RESET); //Disable Dig4
   free(dig4Segments);
 }

@@ -58,7 +58,6 @@
 extern DMA_HandleTypeDef hdma_adc;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim3;
-extern TIM_HandleTypeDef htim14;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -144,23 +143,6 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles EXTI line 4 to 15 interrupts.
-  */
-void EXTI4_15_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI4_15_IRQn 0 */
-
-  /* USER CODE END EXTI4_15_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(START_RESET_BUTTON_Pin);
-  HAL_GPIO_EXTI_IRQHandler(ADD_SCORE_BUTTON_Pin);
-  HAL_GPIO_EXTI_IRQHandler(REMOVE_SCORE_BUTTON_Pin);
-  HAL_GPIO_EXTI_IRQHandler(SELECT_TEAM_BUTTON_Pin);
-  /* USER CODE BEGIN EXTI4_15_IRQn 1 */
-
-  /* USER CODE END EXTI4_15_IRQn 1 */
-}
-
-/**
   * @brief This function handles DMA1 channel 1 interrupt.
   */
 void DMA1_Channel1_IRQHandler(void)
@@ -214,20 +196,6 @@ void TIM3_IRQHandler(void)
   /* USER CODE BEGIN TIM3_IRQn 1 */
 
   /* USER CODE END TIM3_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM14 global interrupt.
-  */
-void TIM14_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM14_IRQn 0 */
-
-  /* USER CODE END TIM14_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim14);
-  /* USER CODE BEGIN TIM14_IRQn 1 */
-
-  /* USER CODE END TIM14_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
