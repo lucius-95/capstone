@@ -46,7 +46,7 @@ enum StartButtonRole
 
 void updateLEDs();
 double getWeight(int);
-void displayTeam1Score();
+void displayScore();
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -173,7 +173,7 @@ int main(void)
     HAL_Delay(10);
     team1Score = getWeight(1);
     updateLEDs();
-    displayTeam1Score();
+    displayTeamScore();
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
   }
@@ -396,64 +396,68 @@ int digitToHexDisplay(int digit) {
   }
 }
 
-void displayTeam1Score()
+void loadLatch(int data)
 {
-	int dig1 = team1Score / 1000;
-	int dig2 = (team1Score / 100) % 10;
-	int dig3 = (team1Score / 10) % 10;
-	int dig4 = team1Score % 10;
-
-	int dig1Segments = digitToHexDisplay(dig1);
-  // TODO - Fill the shift register
-	for (int i = 0; i < 7; i++) {
-    HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) (dig1Segments >> i));
-    HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
+  if (currentTeam == 1)
+  {
+    for (int i = 0; i < 7; i++)
+    {
+      HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) (data >> i));
+      HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
+    }
+    HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_RESET);
   }
-  HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(TEAM1_DIGIT1_EN_GPIO_Port,TEAM1_DIGIT1_EN_Pin, GPIO_PIN_SET); //Enable Dig1
-  HAL_Delay(2);
-  HAL_GPIO_WritePin(TEAM1_DIGIT1_EN_GPIO_Port,TEAM1_DIGIT1_EN_Pin, GPIO_PIN_RESET); //Disable Dig 1
-
-	int dig2Segments = digitToHexDisplay(dig2);
-    // TODO - Fill the shift register
-  for (int i = 0; i < 7; i++) {
-    HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) (dig2Segments >> i));
-    HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
+  else
+  {
+    // TODO Implement for team 2
+//    for (int i = 0; i < 7; i++)
+//    {
+//      HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) (data >> i));
+//      HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_SET);
+//      HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
+//    }
+//    HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_SET);
+//    HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_RESET);
   }
-  HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(TEAM1_DIGIT2_EN_GPIO_Port,TEAM1_DIGIT2_EN_Pin, GPIO_PIN_SET); //Enable Dig2
-  HAL_Delay(2);
-  HAL_GPIO_WritePin(TEAM1_DIGIT2_EN_GPIO_Port,TEAM1_DIGIT2_EN_Pin, GPIO_PIN_RESET); //Disable Dig2
+}
 
-	int dig3Segments = digitToHexDisplay(dig3);
-    // TODO - Fill the shift register
-  for (int i = 0; i < 7; i++) {
-    HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) (dig3Segments >> i));
-    HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
-  }
-  HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(TEAM1_DIGIT3_EN_GPIO_Port,TEAM1_DIGIT3_EN_Pin, GPIO_PIN_SET); //Enable Dig3
+void flashDigit(GPIO_TypeDef* port, uint16_t pin, int data)
+{
+  loadLatch(data);
+  HAL_GPIO_WritePin(port,pin, GPIO_PIN_SET);
   HAL_Delay(2);
-  HAL_GPIO_WritePin(TEAM1_DIGIT3_EN_GPIO_Port,TEAM1_DIGIT3_EN_Pin, GPIO_PIN_RESET); //Disable Dig3
+  HAL_GPIO_WritePin(port,pin, GPIO_PIN_RESET);
+}
 
-	int dig4Segments = digitToHexDisplay(dig4);
-    // TODO - Fill the shift register
-  for (int i = 0; i < 7; i++) {
-    HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) (dig4Segments >> i));
-    HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
+void displayScore()
+{
+  if (currentTeam == 1)
+  {
+    int dig1 = team1Score / 1000;
+    int dig2 = (team1Score / 100) % 10;
+    int dig3 = (team1Score / 10) % 10;
+    int dig4 = team1Score % 10;
+
+    flashDigit(TEAM1_DIGIT1_EN_GPIO_Port, TEAM1_DIGIT1_EN_Pin, digitToHexDisplay(dig1));
+    flashDigit(TEAM1_DIGIT2_EN_GPIO_Port, TEAM1_DIGIT2_EN_Pin, digitToHexDisplay(dig2));
+    flashDigit(TEAM1_DIGIT3_EN_GPIO_Port, TEAM1_DIGIT3_EN_Pin, digitToHexDisplay(dig3));
+    flashDigit(TEAM1_DIGIT4_EN_GPIO_Port, TEAM1_DIGIT4_EN_Pin, digitToHexDisplay(dig4));
   }
-  HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(TEAM1_LATCH_OUTPUT_GPIO_Port, TEAM1_LATCH_OUTPUT_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(TEAM1_DIGIT4_EN_GPIO_Port,TEAM1_DIGIT4_EN_Pin, GPIO_PIN_SET); //Enable Dig4
-  HAL_Delay(2);
-  HAL_GPIO_WritePin(TEAM1_DIGIT4_EN_GPIO_Port,TEAM1_DIGIT4_EN_Pin, GPIO_PIN_RESET); //Disable Dig4
+  else
+  {
+    // TODO Implement for team 2
+//    dig1 = team1Score / 1000;
+//    dig2 = (team1Score / 100) % 10;
+//    dig3 = (team1Score / 10) % 10;
+//    dig4 = team1Score % 10;
+//
+//    flashDigit(TEAM1_DIGIT1_EN_GPIO_Port, TEAM1_DIGIT1_EN_Pin, digitToHexDisplay(dig1));
+//    flashDigit(TEAM1_DIGIT2_EN_GPIO_Port, TEAM1_DIGIT2_EN_Pin, digitToHexDisplay(dig2));
+//    flashDigit(TEAM1_DIGIT3_EN_GPIO_Port, TEAM1_DIGIT3_EN_Pin, digitToHexDisplay(dig3));
+//    flashDigit(TEAM1_DIGIT4_EN_GPIO_Port, TEAM1_DIGIT4_EN_Pin, digitToHexDisplay(dig4));
+  }
 }
 /* USER CODE END 4 */
 
