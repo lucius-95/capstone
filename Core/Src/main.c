@@ -46,7 +46,6 @@ enum StartButtonRole
 
 void updateLEDs();
 double getWeight(int);
-int* digitToHexDisplay(int);
 void displayTeam1Score();
 /* USER CODE END PD */
 
@@ -380,6 +379,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   }
 }
 
+int digitToHexDisplay(int digit) {
+  switch (digit) {
+      case 0: return 0b1111110;
+      case 1: return 0b0110000;
+      case 2: return 0b1101101;
+      case 3: return 0b1111001;
+      case 4: return 0b0110011;
+      case 5: return 0b1011011;
+      case 6: return 0b1011111;
+      case 7: return 0b1110000;
+      case 8: return 0b1111111;
+      case 9: return 0b1111011;
+      // If digit is out of range, turn off all segments
+      default: return 0;
+  }
+}
+
 void displayTeam1Score()
 {
 	int dig1 = team1Score / 1000;
@@ -387,10 +403,10 @@ void displayTeam1Score()
 	int dig3 = (team1Score / 10) % 10;
 	int dig4 = team1Score % 10;
 
-	int* dig1Segments = digitToHexDisplay(dig1);
+	int dig1Segments = digitToHexDisplay(dig1);
   // TODO - Fill the shift register
-	for (int i=6;i>=0;i--) {
-    HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) dig1Segments[i]);
+	for (int i = 0; i < 7; i++) {
+    HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) (dig1Segments >> i));
     HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
   }
@@ -399,12 +415,11 @@ void displayTeam1Score()
   HAL_GPIO_WritePin(TEAM1_DIGIT1_EN_GPIO_Port,TEAM1_DIGIT1_EN_Pin, GPIO_PIN_SET); //Enable Dig1
   HAL_Delay(2);
   HAL_GPIO_WritePin(TEAM1_DIGIT1_EN_GPIO_Port,TEAM1_DIGIT1_EN_Pin, GPIO_PIN_RESET); //Disable Dig 1
-  free(dig1Segments);
 
-	int* dig2Segments = digitToHexDisplay(dig2);
+	int dig2Segments = digitToHexDisplay(dig2);
     // TODO - Fill the shift register
-	for (int i=6;i>=0;i--) {
-    HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) dig2Segments[i]);
+  for (int i = 0; i < 7; i++) {
+    HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) (dig2Segments >> i));
     HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
   }
@@ -413,12 +428,11 @@ void displayTeam1Score()
   HAL_GPIO_WritePin(TEAM1_DIGIT2_EN_GPIO_Port,TEAM1_DIGIT2_EN_Pin, GPIO_PIN_SET); //Enable Dig2
   HAL_Delay(2);
   HAL_GPIO_WritePin(TEAM1_DIGIT2_EN_GPIO_Port,TEAM1_DIGIT2_EN_Pin, GPIO_PIN_RESET); //Disable Dig2
-  free(dig2Segments);
 
-	int* dig3Segments = digitToHexDisplay(dig3);
+	int dig3Segments = digitToHexDisplay(dig3);
     // TODO - Fill the shift register
-	for (int i=6;i>=0;i--) {
-    HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) dig3Segments[i]);
+  for (int i = 0; i < 7; i++) {
+    HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) (dig3Segments >> i));
     HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
   }
@@ -427,12 +441,11 @@ void displayTeam1Score()
   HAL_GPIO_WritePin(TEAM1_DIGIT3_EN_GPIO_Port,TEAM1_DIGIT3_EN_Pin, GPIO_PIN_SET); //Enable Dig3
   HAL_Delay(2);
   HAL_GPIO_WritePin(TEAM1_DIGIT3_EN_GPIO_Port,TEAM1_DIGIT3_EN_Pin, GPIO_PIN_RESET); //Disable Dig3
-  free(dig3Segments);
 
-	int* dig4Segments = digitToHexDisplay(dig4);
+	int dig4Segments = digitToHexDisplay(dig4);
     // TODO - Fill the shift register
-	for (int i=6;i>=0;i--) {
-    HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) dig4Segments[i]);
+  for (int i = 0; i < 7; i++) {
+    HAL_GPIO_WritePin(TEAM1_SWD_GPIO_Port, TEAM1_SWD_Pin, (GPIO_PinState) (dig4Segments >> i));
     HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(TEAM1_SWCLK_GPIO_Port, TEAM1_SWCLK_Pin, GPIO_PIN_RESET);
   }
@@ -441,112 +454,7 @@ void displayTeam1Score()
   HAL_GPIO_WritePin(TEAM1_DIGIT4_EN_GPIO_Port,TEAM1_DIGIT4_EN_Pin, GPIO_PIN_SET); //Enable Dig4
   HAL_Delay(2);
   HAL_GPIO_WritePin(TEAM1_DIGIT4_EN_GPIO_Port,TEAM1_DIGIT4_EN_Pin, GPIO_PIN_RESET); //Disable Dig4
-  free(dig4Segments);
 }
-
-int* digitToHexDisplay(int digit) {
-	int *segments = (int *)malloc(SEGMENTS * sizeof(int));
-    switch (digit) {
-        case 0:
-            segments[0] = 1; // a
-            segments[1] = 1; // b
-            segments[2] = 1; // c
-            segments[3] = 1; // d
-            segments[4] = 1; // e
-            segments[5] = 1; // f
-            segments[6] = 0; // g
-            break;
-        case 1:
-            segments[0] = 0; // a
-            segments[1] = 1; // b
-            segments[2] = 1; // c
-            segments[3] = 0; // d
-            segments[4] = 0; // e
-            segments[5] = 0; // f
-            segments[6] = 0; // g
-            break;
-        case 2:
-            segments[0] = 1; // a
-            segments[1] = 1; // b
-            segments[2] = 0; // c
-            segments[3] = 1; // d
-            segments[4] = 1; // e
-            segments[5] = 0; // f
-            segments[6] = 1; // g
-            break;
-        case 3:
-            segments[0] = 1; // a
-            segments[1] = 1; // b
-            segments[2] = 1; // c
-            segments[3] = 1; // d
-            segments[4] = 0; // e
-            segments[5] = 0; // f
-            segments[6] = 1; // g
-            break;
-        case 4:
-            segments[0] = 0; // a
-            segments[1] = 1; // b
-            segments[2] = 1; // c
-            segments[3] = 0; // d
-            segments[4] = 0; // e
-            segments[5] = 1; // f
-            segments[6] = 1; // g
-            break;
-        case 5:
-            segments[0] = 1; // a
-            segments[1] = 0; // b
-            segments[2] = 1; // c
-            segments[3] = 1; // d
-            segments[4] = 0; // e
-            segments[5] = 1; // f
-            segments[6] = 1; // g
-            break;
-        case 6:
-            segments[0] = 1; // a
-            segments[1] = 0; // b
-            segments[2] = 1; // c
-            segments[3] = 1; // d
-            segments[4] = 1; // e
-            segments[5] = 1; // f
-            segments[6] = 1; // g
-            break;
-        case 7:
-            segments[0] = 1; // a
-            segments[1] = 1; // b
-            segments[2] = 1; // c
-            segments[3] = 0; // d
-            segments[4] = 0; // e
-            segments[5] = 0; // f
-            segments[6] = 0; // g
-            break;
-        case 8:
-            segments[0] = 1; // a
-            segments[1] = 1; // b
-            segments[2] = 1; // c
-            segments[3] = 1; // d
-            segments[4] = 1; // e
-            segments[5] = 1; // f
-            segments[6] = 1; // g
-            break;
-        case 9:
-            segments[0] = 1; // a
-            segments[1] = 1; // b
-            segments[2] = 1; // c
-            segments[3] = 1; // d
-            segments[4] = 0; // e
-            segments[5] = 1; // f
-            segments[6] = 1; // g
-            break;
-        default:
-            // If digit is out of range, turn off all segments
-            for (int i = 0; i < SEGMENTS; i++) {
-                segments[i] = 0;
-            }
-            break;
-    }
-	return segments;
-}
-
 /* USER CODE END 4 */
 
 /**
