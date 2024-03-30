@@ -62,7 +62,6 @@ void restartGame();
 /* USER CODE BEGIN PV */
 // Variables to help button logics
 enum StartButtonRole startRole = BEGIN;
-bool isButtonFree = true;
 bool isSettingUp = true;
 
 // Variables to help game logics
@@ -137,48 +136,64 @@ int main(void)
   while (1)
   {
     // ========== Game Logic ==========
-//    if (startRole == NONE)
-//    {
-//      // Calculate the total score from all holes
-//      int totalScore;
-//      for (int i = 0; i < 9; i++)
-//      {
-//        totalScore += round(getWeight(i) / weightPerBag) * holeScores[i];
-//      }
-//
-//      if (currentTeam == 1)
-//      {
-//        // Game ends
-//        if (totalScore == team1TargetScore)
-//        {
-//          startRole = RESTART;
-//        }
-//        else if (totalScore < team1TargetScore)
-//        {
-//          team1Score = team1TargetScore - totalScore;
-//        }
-//        else
-//        {
-//          // TODO Blink score
-//        }
-//      }
-//      else
-//      {
-//        // Game ends
-//        if (totalScore == team2TargetScore)
-//        {
-//          startRole = RESTART;
-//        }
-//        else if (totalScore < team2TargetScore)
-//        {
-//          team2Score = team2TargetScore - totalScore;
-//        }
-//        else
-//        {
-//          // TODO Blink score
-//        }
-//      }
-//    }
+    if (startRole == NONE)
+    {
+      // Calculate the total score from all holes
+      int totalScore;
+      for (int i = 0; i < 9; i++)
+      {
+        totalScore += round(getWeight(i) / weightPerBag) * holeScores[i];
+      }
+
+      if (currentTeam == 1)
+      {
+        // Game ends
+        if (totalScore == team1TargetScore)
+        {
+          startRole = RESTART;
+        }
+        else if (totalScore < team1TargetScore)
+        {
+          team1Score = team1TargetScore - totalScore;
+        }
+        else
+        {
+          for (int i = 0; i < 3; i++)
+          {
+            HAL_GPIO_WritePin(TEAM1_DIGIT1_EN_GPIO_Port, TEAM1_DIGIT1_EN_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(TEAM1_DIGIT2_EN_GPIO_Port, TEAM1_DIGIT2_EN_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(TEAM1_DIGIT3_EN_GPIO_Port, TEAM1_DIGIT3_EN_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(TEAM1_DIGIT4_EN_GPIO_Port, TEAM1_DIGIT4_EN_Pin, GPIO_PIN_RESET);
+            HAL_Delay(500);
+            displayScore();
+          }
+        }
+      }
+      else
+      {
+        // Game ends
+        if (totalScore == team2TargetScore)
+        {
+          startRole = RESTART;
+        }
+        else if (totalScore < team2TargetScore)
+        {
+          team2Score = team2TargetScore - totalScore;
+        }
+        else
+        {
+          for (int i = 0; i < 3; i++)
+          {
+            HAL_GPIO_WritePin(TEAM2_DIGIT1_EN_GPIO_Port, TEAM2_DIGIT1_EN_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(TEAM2_DIGIT2_EN_GPIO_Port, TEAM2_DIGIT2_EN_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(TEAM2_DIGIT3_EN_GPIO_Port, TEAM2_DIGIT3_EN_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(TEAM2_DIGIT4_EN_GPIO_Port, TEAM2_DIGIT4_EN_Pin, GPIO_PIN_RESET);
+            HAL_Delay(500);
+            displayScore();
+          }
+        }
+      }
+    }
 
     // ========== Update the LEDs ==========
     // TODO Are these needed?
@@ -226,14 +241,14 @@ int main(void)
     {
       if (isSettingUp)
       {
-        if (currentTeam == 1) { team1TargetScore += 100; }
-        else { team2TargetScore += 100; }
+        if (currentTeam == 1) { if (team1TargetScore < 9000) { team1TargetScore += 100; } }
+        else if (team2TargetScore < 9000) { team2TargetScore += 100; }
       }
       // Manually adjust the score
       else
       {
-        if (currentTeam == 1) { team1Score += 25; }
-        else { team2Score += 25; }
+        if (currentTeam == 1) { if (team1Score < 9975) { team1Score += 25; } }
+        else if (team2Score < 9975) { team2Score += 25; }
       }
       addScoreButtonPressed = false;
     }
@@ -330,7 +345,6 @@ void updateLEDs()
 void restartGame()
 {
   startRole = BEGIN;
-  isButtonFree = true;
   isSettingUp = true;
   weightPerBag = 0;
   currentTeam = 1;
@@ -338,9 +352,12 @@ void restartGame()
   team1TargetScore = 0;
   team2Score = 0;
   team2TargetScore = 0;
-
-  // TODO Reset everything (the score board, target score, ...)
-  updateLEDs();
+  startButtonPressed = false;
+  startButtonHeld = false;
+  selectTeamButtonPressed = false;
+  addScoreButtonPressed = false;
+  removeScoreButtonPressed = false;
+  addAndRemoveScoreButtonsHeld = false;
 
   // Stop the timers
   HAL_TIM_Base_Stop_IT(&htim1);
@@ -357,7 +374,7 @@ double getWeight(int fsrNum)
   HAL_GPIO_WritePin(AIN_S3_GPIO_Port, AIN_S3_Pin, (GPIO_PinState) ((fsrNum >> 3) & 1));
 
   // TODO Wait for the ADC to balance itself
-  adcValue = HAL_ADC_GetValue(&hadc);
+  //adcValue = HAL_ADC_GetValue(&hadc);
   return exp((adcValue - 1384.04) / 307.17) + 19.98;
 }
 
