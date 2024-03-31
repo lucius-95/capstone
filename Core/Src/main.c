@@ -74,7 +74,7 @@ int holeScores[9] = { 50, 150, 75, 300, 500, 200, 25, 100, 25 };
 double baseWeights[9];
 double weightPerBag = 0.0;
 int currentTeam = 1;
-int team1Score = 0;
+int team1Score = 123;
 int team1TargetScore = 0;
 int team2Score = 0;
 int team2TargetScore = 0;
@@ -220,9 +220,9 @@ int main(void)
     // Calibrate
     else if (addAndRemoveScoreButtonsHeld && startRole == BEGIN)
     {
+      currentTeam = 1;
       weightPerBag = getWeight(0);
       team1Score = weightPerBag;
-      displayScore();
     }
     // Start
     else if (startButtonPressed && bounceFree(START_RESET_BUTTON_GPIO_Port, START_RESET_BUTTON_Pin))
@@ -246,12 +246,12 @@ int main(void)
       if (currentTeam == 1)
       {
         currentTeam = 2;
-        team1TargetScore = team1Score;
+        if (startRole == NONE) { team1TargetScore = team1Score; }
       }
       else
       {
         currentTeam = 1;
-        team2TargetScore = team2Score;
+        if (startRole == NONE) { team2TargetScore = team2Score; }
       }
 
       switchingTeam = true;
@@ -386,7 +386,6 @@ double getRawWeight(int fsrNum)
   HAL_GPIO_WritePin(AIN_S2_GPIO_Port, AIN_S2_Pin, (GPIO_PinState) ((fsrNum >> 2) & 1));
   HAL_GPIO_WritePin(AIN_S3_GPIO_Port, AIN_S3_Pin, (GPIO_PinState) ((fsrNum >> 3) & 1));
 
-  HAL_Delay(50);
   adcValue = HAL_ADC_GetValue(&hadc);
   return exp((adcValue - 1384.04) / 307.17) + 19.98;
 //  return adcValue;
@@ -406,12 +405,17 @@ void initializeBaseWeights()
   }
 }
 
-// Display "Err" - This should be followed by an error number
-void displayError()
+// Display an error message - The meaning of each error is documented in the manual
+void displayError(int errorNumber)
 {
-  flashDigit(TEAM1_DIGIT1_EN_GPIO_Port, TEAM1_DIGIT1_EN_Pin, 0b1001111); // E
-  flashDigit(TEAM1_DIGIT2_EN_GPIO_Port, TEAM1_DIGIT2_EN_Pin, 0b0000101); // r
-  flashDigit(TEAM1_DIGIT3_EN_GPIO_Port, TEAM1_DIGIT3_EN_Pin, 0b0000101); // r
+  int currentTick = HAL_GetTick();
+  while (HAL_GetTick() - currentTick < 2000)
+  {
+    flashDigit(TEAM1_DIGIT1_EN_GPIO_Port, TEAM1_DIGIT1_EN_Pin, 0b1001111); // E
+    flashDigit(TEAM1_DIGIT2_EN_GPIO_Port, TEAM1_DIGIT2_EN_Pin, 0b0000101); // r
+    flashDigit(TEAM1_DIGIT3_EN_GPIO_Port, TEAM1_DIGIT3_EN_Pin, 0b0000101); // r
+    flashDigit(TEAM1_DIGIT4_EN_GPIO_Port, TEAM1_DIGIT4_EN_Pin, digitToHexDisplay(errorNumber));
+  }
 }
 
 void beginGame()
@@ -426,20 +430,24 @@ void beginGame()
     addAndRemoveScoreButtonsHeld = false;
     __HAL_TIM_SET_COUNTER(&htim3, 0);
   }
-  else if (team1TargetScore <= 0)
+  else
   {
-    displayError();
-    flashDigit(TEAM1_DIGIT4_EN_GPIO_Port, TEAM1_DIGIT4_EN_Pin, digitToHexDisplay(1));
-  }
-  else if (team2TargetScore <= 0)
-  {
-    displayError();
-    flashDigit(TEAM1_DIGIT4_EN_GPIO_Port, TEAM1_DIGIT4_EN_Pin, digitToHexDisplay(2));
-  }
-  else if (weightPerBag <= 0)
-  {
-    displayError();
-    flashDigit(TEAM1_DIGIT4_EN_GPIO_Port, TEAM1_DIGIT4_EN_Pin, digitToHexDisplay(3));
+    // Display the error on team 1 score board
+    int oldCurrentTeam = currentTeam;
+    currentTeam = 1;
+    if (team1TargetScore <= 0)
+    {
+      displayError(1);
+    }
+    else if (team2TargetScore <= 0)
+    {
+      displayError(2);
+    }
+    else if (weightPerBag <= 0)
+    {
+      displayError(3);
+    }
+    currentTeam = oldCurrentTeam;
   }
 }
 
@@ -489,6 +497,7 @@ void loadLatch(int data)
 void flashDigit(GPIO_TypeDef* port, uint16_t pin, int data)
 {
   loadLatch(data);
+  HAL_Delay(1);
   HAL_GPIO_WritePin(port,pin, GPIO_PIN_SET);
   HAL_Delay(2);
   HAL_GPIO_WritePin(port,pin, GPIO_PIN_RESET);
