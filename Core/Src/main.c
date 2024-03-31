@@ -42,8 +42,6 @@ enum StartButtonRole
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SEGMENTS 7
-
 void updateLEDs();
 int getWeight(int);
 void displayScore();
@@ -72,8 +70,8 @@ bool isSettingUp = true;
 // Variables to help game logics
 uint32_t adcValue = 0;
 int holeScores[9] = { 50, 150, 75, 300, 500, 200, 25, 100, 25 };
-double baseWeights[9];
-double weightPerBag = 0.0;
+int baseWeights[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+int weightPerBag = 0;
 int currentTeam = 1;
 int team1Score = 123;
 int team1TargetScore = 0;
