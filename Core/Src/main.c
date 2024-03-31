@@ -45,7 +45,7 @@ enum StartButtonRole
 #define SEGMENTS 7
 
 void updateLEDs();
-double getWeight(int);
+int getWeight(int);
 void displayScore();
 bool bounceFree(GPIO_TypeDef*, uint16_t);
 void beginGame();
@@ -54,6 +54,7 @@ void blinkScore();
 void initializeBaseWeights();
 int digitToHexDisplay(int);
 void flashDigit(GPIO_TypeDef*, uint16_t, int);
+int getRawWeight(int);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -174,6 +175,7 @@ int main(void)
           else
           {
             if (currentTeam != 1) { continue; }
+            team1Score = team1TargetScore;
             updateLEDs();
             blinkScore();
           }
@@ -194,6 +196,7 @@ int main(void)
           else
           {
             if (currentTeam != 2) { continue; }
+            team2Score = team2TargetScore;
             updateLEDs();
             blinkScore();
           }
@@ -206,6 +209,7 @@ int main(void)
     }
 
     // ========== Update the LEDs ==========
+    team1TargetScore = getRawWeight(1);
     updateLEDs();
     displayScore();
 
@@ -216,13 +220,7 @@ int main(void)
       restartGame();
       startButtonHeld = false;
       __HAL_TIM_SET_COUNTER(&htim1, 0);
-    }
-    // Calibrate
-    else if (addAndRemoveScoreButtonsHeld && startRole == BEGIN)
-    {
-      currentTeam = 1;
-      weightPerBag = getWeight(0);
-      team1Score = weightPerBag;
+      HAL_Delay(500);
     }
     // Start
     else if (startButtonPressed && bounceFree(START_RESET_BUTTON_GPIO_Port, START_RESET_BUTTON_Pin))
@@ -240,18 +238,32 @@ int main(void)
 
       startButtonPressed = false;
     }
+    // Calibrate
+    else if (addAndRemoveScoreButtonsHeld && startRole == BEGIN)
+    {
+      isSettingUp = false;
+      currentTeam = 1;
+      weightPerBag = getWeight(0);
+      team1Score = weightPerBag;
+    }
     // Select team
     else if (selectTeamButtonPressed && bounceFree(SELECT_TEAM_BUTTON_GPIO_Port, SELECT_TEAM_BUTTON_Pin))
     {
       if (currentTeam == 1)
       {
         currentTeam = 2;
-        if (startRole == NONE) { team1TargetScore = team1Score; }
+        if (startRole == NONE)
+        {
+          team1TargetScore = team1Score;
+        }
       }
       else
       {
         currentTeam = 1;
-        if (startRole == NONE) { team2TargetScore = team2Score; }
+        if (startRole == NONE)
+        {
+          team2TargetScore = team2Score;
+        }
       }
 
       switchingTeam = true;
@@ -268,8 +280,8 @@ int main(void)
       // Manually adjust the score
       else
       {
-        if (currentTeam == 1) { if (team1Score < 9975) { team1Score += 25; } }
-        else if (team2Score < 9975) { team2Score += 25; }
+        if (currentTeam == 1) { if (team1TargetScore < 9975) { team1TargetScore += 25; } }
+        else if (team2TargetScore < 9975) { team2TargetScore += 25; }
       }
       addScoreButtonPressed = false;
     }
@@ -278,14 +290,14 @@ int main(void)
     {
       if (isSettingUp)
       {
-        if (currentTeam == 1) { if (team1TargetScore > 0) { team1TargetScore -= 100; } }
-        else if (team2TargetScore > 0) { team2TargetScore -= 100; }
+        if (currentTeam == 1) { if (team1TargetScore >= 100) { team1TargetScore -= 100; } }
+        else if (team2TargetScore >= 100) { team2TargetScore -= 100; }
       }
       // Manually adjust the score
       else
       {
-        if (currentTeam == 1) { if (team1Score > 0) { team1Score -= 25; } }
-        else if (team2Score > 0) { team2Score -= 25; }
+        if (currentTeam == 1) { if (team1TargetScore >= 25) { team1TargetScore -= 25; } }
+        else if (team2TargetScore >= 25) { team2TargetScore -= 25; }
       }
       removeScoreButtonPressed = false;
     }
@@ -295,8 +307,9 @@ int main(void)
     {
       __HAL_TIM_SET_COUNTER(&htim1, 0);
     }
-    if (HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_SET ||
-        HAL_GPIO_ReadPin(REMOVE_SCORE_BUTTON_GPIO_Port, REMOVE_SCORE_BUTTON_Pin) == GPIO_PIN_SET)
+    if (HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_SET)
+//    if (HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_SET ||
+//        HAL_GPIO_ReadPin(REMOVE_SCORE_BUTTON_GPIO_Port, REMOVE_SCORE_BUTTON_Pin) == GPIO_PIN_SET)
     {
       __HAL_TIM_SET_COUNTER(&htim3, 0);
     }
@@ -356,12 +369,7 @@ void restartGame()
 {
   startRole = BEGIN;
   isSettingUp = true;
-  weightPerBag = 0.0;
   currentTeam = 1;
-  team1Score = 0;
-  team1TargetScore = 0;
-  team2Score = 0;
-  team2TargetScore = 0;
   startButtonPressed = false;
   startButtonHeld = false;
   selectTeamButtonPressed = false;
@@ -378,7 +386,7 @@ void restartGame()
 }
 
 // Get the total weight on the FSR, including the base
-double getRawWeight(int fsrNum)
+int getRawWeight(int fsrNum)
 {
   // Set the MUX to get value from the interested FSR
   HAL_GPIO_WritePin(AIN_S0_GPIO_Port, AIN_S0_Pin, (GPIO_PinState) ((fsrNum >> 0) & 1));
@@ -387,12 +395,12 @@ double getRawWeight(int fsrNum)
   HAL_GPIO_WritePin(AIN_S3_GPIO_Port, AIN_S3_Pin, (GPIO_PinState) ((fsrNum >> 3) & 1));
 
   adcValue = HAL_ADC_GetValue(&hadc);
-  return exp((adcValue - 1384.04) / 307.17) + 19.98;
-//  return adcValue;
+//  return exp((adcValue - 1384.04) / 307.17) + 19.98;
+  return adcValue;
 }
 
 // Get the bean bag weight, excluding the base
-double getWeight(int fsrNum)
+int getWeight(int fsrNum)
 {
   return getRawWeight(fsrNum) - baseWeights[fsrNum];
 }
@@ -497,7 +505,6 @@ void loadLatch(int data)
 void flashDigit(GPIO_TypeDef* port, uint16_t pin, int data)
 {
   loadLatch(data);
-  HAL_Delay(1);
   HAL_GPIO_WritePin(port,pin, GPIO_PIN_SET);
   HAL_Delay(2);
   HAL_GPIO_WritePin(port,pin, GPIO_PIN_RESET);
@@ -591,14 +598,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     }
     case ADD_SCORE_BUTTON_Pin:
     {
-      if (HAL_GPIO_ReadPin(REMOVE_SCORE_BUTTON_GPIO_Port, REMOVE_SCORE_BUTTON_Pin) == GPIO_PIN_RESET)
-      {
-        HAL_TIM_Base_Start_IT(&htim3);
-      }
-      else
-      {
-        addScoreButtonPressed = true;
-      }
+      addScoreButtonPressed = true;
+      HAL_TIM_Base_Start_IT(&htim3);
+
+//      if (HAL_GPIO_ReadPin(REMOVE_SCORE_BUTTON_GPIO_Port, REMOVE_SCORE_BUTTON_Pin) == GPIO_PIN_RESET)
+//      {
+//        HAL_TIM_Base_Start_IT(&htim3);
+//      }
+//      else
+//      {
+//        addScoreButtonPressed = true;
+//      }
       break;
     }
     case REMOVE_SCORE_BUTTON_Pin:
@@ -628,6 +638,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   else if (htim->Instance == TIM3 &&
            HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_RESET &&
            HAL_GPIO_ReadPin(REMOVE_SCORE_BUTTON_GPIO_Port, REMOVE_SCORE_BUTTON_Pin) == GPIO_PIN_RESET)
+  {
+    addAndRemoveScoreButtonsHeld = true;
+  }
+  else if (htim->Instance == TIM3 &&
+      HAL_GPIO_ReadPin(ADD_SCORE_BUTTON_GPIO_Port, ADD_SCORE_BUTTON_Pin) == GPIO_PIN_RESET)
   {
     addAndRemoveScoreButtonsHeld = true;
   }
