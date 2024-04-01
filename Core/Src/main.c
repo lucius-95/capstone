@@ -218,7 +218,8 @@ int main(void)
       restartGame();
       startButtonHeld = false;
       __HAL_TIM_SET_COUNTER(&htim1, 0);
-      HAL_Delay(500);
+      while (HAL_GPIO_ReadPin(START_RESET_BUTTON_GPIO_Port, START_RESET_BUTTON_Pin) == GPIO_PIN_RESET);
+      startButtonPressed = false;
     }
     // Start
     else if (startButtonPressed && bounceFree(START_RESET_BUTTON_GPIO_Port, START_RESET_BUTTON_Pin))
@@ -243,6 +244,7 @@ int main(void)
       currentTeam = 1;
       weightPerBag = getWeight(0);
       team1Score = weightPerBag;
+      addScoreButtonPressed = false;
     }
     // Select team
     else if (selectTeamButtonPressed && bounceFree(SELECT_TEAM_BUTTON_GPIO_Port, SELECT_TEAM_BUTTON_Pin))
