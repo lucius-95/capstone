@@ -75,8 +75,10 @@ int weightPerBag = 0;
 int currentTeam = 1;
 int team1Score = 123;
 int team1TargetScore = 0;
+int team1SetTargetScore = 0;
 int team2Score = 0;
 int team2TargetScore = 0;
+int team2SetTargetScore = 0;
 
 // See if buttons were pressed or held
 bool startButtonPressed = false;
@@ -274,8 +276,8 @@ int main(void)
     {
       if (isSettingUp)
       {
-        if (currentTeam == 1) { if (team1TargetScore < 9000) { team1TargetScore += 100; } }
-        else if (team2TargetScore < 9000) { team2TargetScore += 100; }
+        if (currentTeam == 1) { if (team1SetTargetScore < 9000) { team1SetTargetScore += 100; } }
+        else if (team2SetTargetScore < 9000) { team2SetTargetScore += 100; }
       }
       // Manually adjust the score
       else
@@ -290,8 +292,8 @@ int main(void)
     {
       if (isSettingUp)
       {
-        if (currentTeam == 1) { if (team1TargetScore >= 100) { team1TargetScore -= 100; } }
-        else if (team2TargetScore >= 100) { team2TargetScore -= 100; }
+        if (currentTeam == 1) { if (team1SetTargetScore >= 100) { team1SetTargetScore -= 100; } }
+        else if (team2SetTargetScore >= 100) { team2SetTargetScore -= 100; }
       }
       // Manually adjust the score
       else
@@ -428,12 +430,14 @@ void displayError(int errorNumber)
 
 void beginGame()
 {
-  if (team1TargetScore > 0 && team2TargetScore > 0 && weightPerBag > 0)
+  if (team1SetTargetScore > 0 && team2SetTargetScore > 0 && weightPerBag > 0)
   {
     startRole = NONE;
     isSettingUp = false;
     currentTeam = 1;
+    team1TargetScore = team1SetTargetScore;
     team1Score = team1TargetScore;
+    team2TargetScore = team2SetTargetScore;
     team2Score = team2TargetScore;
     addAndRemoveScoreButtonsHeld = false;
     __HAL_TIM_SET_COUNTER(&htim3, 0);
@@ -443,11 +447,11 @@ void beginGame()
     // Display the error on team 1 score board
     int oldCurrentTeam = currentTeam;
     currentTeam = 1;
-    if (team1TargetScore <= 0)
+    if (team1SetTargetScore <= 0)
     {
       displayError(1);
     }
-    else if (team2TargetScore <= 0)
+    else if (team2SetTargetScore <= 0)
     {
       displayError(2);
     }
@@ -514,10 +518,10 @@ void displayScore()
 {
   if (currentTeam == 1)
   {
-    int dig1 = (isSettingUp ? team1TargetScore : team1Score) / 1000;
-    int dig2 = ((isSettingUp ? team1TargetScore : team1Score) / 100) % 10;
-    int dig3 = ((isSettingUp ? team1TargetScore : team1Score) / 10) % 10;
-    int dig4 = (isSettingUp ? team1TargetScore : team1Score) % 10;
+    int dig1 = (isSettingUp ? team1SetTargetScore : team1Score) / 1000;
+    int dig2 = ((isSettingUp ? team1SetTargetScore : team1Score) / 100) % 10;
+    int dig3 = ((isSettingUp ? team1SetTargetScore : team1Score) / 10) % 10;
+    int dig4 = (isSettingUp ? team1SetTargetScore : team1Score) % 10;
 
     flashDigit(TEAM1_DIGIT1_EN_GPIO_Port, TEAM1_DIGIT1_EN_Pin, digitToHexDisplay(dig1));
     flashDigit(TEAM1_DIGIT2_EN_GPIO_Port, TEAM1_DIGIT2_EN_Pin, digitToHexDisplay(dig2));
@@ -526,10 +530,10 @@ void displayScore()
   }
   else
   {
-  int dig1 = (isSettingUp ? team2TargetScore : team2Score) / 1000;
-  int dig2 = ((isSettingUp ? team2TargetScore : team2Score) / 100) % 10;
-  int dig3 = ((isSettingUp ? team2TargetScore : team2Score) / 10) % 10;
-  int dig4 = (isSettingUp ? team2TargetScore : team2Score) % 10;
+  int dig1 = (isSettingUp ? team2SetTargetScore : team2Score) / 1000;
+  int dig2 = ((isSettingUp ? team2SetTargetScore : team2Score) / 100) % 10;
+  int dig3 = ((isSettingUp ? team2SetTargetScore : team2Score) / 10) % 10;
+  int dig4 = (isSettingUp ? team2SetTargetScore : team2Score) % 10;
 
     flashDigit(TEAM2_DIGIT1_EN_GPIO_Port, TEAM2_DIGIT1_EN_Pin, digitToHexDisplay(dig1));
     flashDigit(TEAM2_DIGIT2_EN_GPIO_Port, TEAM2_DIGIT2_EN_Pin, digitToHexDisplay(dig2));
