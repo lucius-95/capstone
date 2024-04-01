@@ -162,7 +162,6 @@ int main(void)
           // Game ends
           if (totalScore == team1TargetScore)
           {
-            startRole = RESTART;
             team1Score = 0;
             blinkScore();
           }
@@ -183,7 +182,6 @@ int main(void)
           // Game ends
           if (totalScore == team2TargetScore)
           {
-            startRole = RESTART;
             team2Score = 0;
             blinkScore();
           }
@@ -255,6 +253,7 @@ int main(void)
         if (startRole == NONE)
         {
           team1TargetScore = team1Score;
+          if (team1Score == 0) { startRole = RESTART; }
         }
       }
       else
@@ -263,6 +262,7 @@ int main(void)
         if (startRole == NONE)
         {
           team2TargetScore = team2Score;
+          if (team2Score == 0) { startRole = RESTART; }
         }
       }
 
