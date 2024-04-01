@@ -379,6 +379,7 @@ void restartGame()
   removeScoreButtonPressed = false;
   addAndRemoveScoreButtonsHeld = false;
   switchingTeam = false;
+  initializeBaseWeights();
 
   // Stop the timers and reset their counters
   HAL_TIM_Base_Stop_IT(&htim1);
