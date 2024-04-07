@@ -71,7 +71,7 @@ bool isSettingUp = true;
 uint32_t adcValue = 0;
 int holeScores[9] = { 50, 150, 75, 300, 500, 200, 25, 100, 25 };
 int baseWeights[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-int weightPerBag = 0;
+int weightPerBag[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 int currentTeam = 1;
 int team1Score = 123;
 int team1TargetScore = 0;
@@ -154,7 +154,9 @@ int main(void)
       int totalScore = 0;
       for (int i = 0; i < 9; i++)
       {
-        totalScore += round(getWeight(i) / weightPerBag) * holeScores[i];
+        if (i != 0) continue;
+        totalScore += round(getWeight(i) / weightPerBag[i]) * holeScores[i];
+        //totalScore += getWeight(i) * holeScores[i];
       }
 
       if (!switchingTeam)
@@ -207,7 +209,8 @@ int main(void)
     }
 
     // ========== Update the LEDs ==========
-    team1TargetScore = getRawWeight(1);
+//    team1SetTargetScore = getRawWeight(0);
+//    team2SetTargetScore = getRawWeight(2);
     updateLEDs();
     displayScore();
 
@@ -242,8 +245,12 @@ int main(void)
     {
       isSettingUp = false;
       currentTeam = 1;
-      weightPerBag = getWeight(0);
-      team1Score = weightPerBag;
+      for (int i = 0; i < 9; i++)
+      {
+        if (i != 0) continue;
+        weightPerBag[i] = getWeight(i);
+      }
+      team1Score = weightPerBag[0];
       addScoreButtonPressed = false;
     }
     // Select team
@@ -396,16 +403,29 @@ int getRawWeight(int fsrNum)
   HAL_GPIO_WritePin(AIN_S1_GPIO_Port, AIN_S1_Pin, (GPIO_PinState) ((fsrNum >> 1) & 1));
   HAL_GPIO_WritePin(AIN_S2_GPIO_Port, AIN_S2_Pin, (GPIO_PinState) ((fsrNum >> 2) & 1));
   HAL_GPIO_WritePin(AIN_S3_GPIO_Port, AIN_S3_Pin, (GPIO_PinState) ((fsrNum >> 3) & 1));
+  HAL_Delay(2);
 
   adcValue = HAL_ADC_GetValue(&hadc);
-//  return exp((adcValue - 1384.04) / 307.17) + 19.98;
-  return adcValue;
+  //return exp((adcValue - 1384.04) / 307.17) + 19.98;
+  return pow(2.75, 0.00151 * adcValue);
+  //return adcValue;
 }
 
 // Get the bean bag weight, excluding the base
 int getWeight(int fsrNum)
 {
-  return getRawWeight(fsrNum) - baseWeights[fsrNum];
+  int totalWeight = getRawWeight(fsrNum);
+
+  if (totalWeight < baseWeights[fsrNum]) { return 0; }
+  return totalWeight - baseWeights[fsrNum];
+
+//  if (totalWeight < 1800) { return 0; }
+//  if (totalWeight < 2150) { return 1; }
+//  if (totalWeight < 2450) { return 2; }
+//  if (totalWeight < 2550) { return 3; }
+//  if (totalWeight < 2700) { return 4; }
+//
+//  return 0;
 }
 
 void initializeBaseWeights()
@@ -431,7 +451,7 @@ void displayError(int errorNumber)
 
 void beginGame()
 {
-  if (team1SetTargetScore > 0 && team2SetTargetScore > 0 && weightPerBag > 0)
+  if (team1SetTargetScore > 0 && team2SetTargetScore > 0 && weightPerBag[0] > 0)
   {
     startRole = NONE;
     isSettingUp = false;
@@ -456,7 +476,7 @@ void beginGame()
     {
       displayError(2);
     }
-    else if (weightPerBag <= 0)
+    else if (weightPerBag[0] <= 0)
     {
       displayError(3);
     }
